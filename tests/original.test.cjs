@@ -9,6 +9,39 @@ async function main(){
  assert.equal(execFileSync('git',['hash-object','game-original.html'],{encoding:'utf8'}).trim(),'7963ea0935a6ee1b1008e20e882907b2989e633a','Original illustration file must remain byte-for-byte unchanged');
  const imageData=name=>html.match(new RegExp(name+"\\.src='([^']+)'"))[1];
  const art=await loadImage(imageData('artwork')),patches=await loadImage(imageData('colourPatches'));
+ const native=createCanvas(art.width,art.height).getContext('2d');
+ native.drawImage(art,0,0);
+ const layouts=new Set();
+ for(let id=1;id<=10;id++){
+  const {width,height,answers,atlas}=JSON.parse(fs.readFileSync('sets/'+id+'.json','utf8'));
+  assert.deepEqual([width,height],[art.width,art.height]);
+  assert.equal(answers.length,10);
+  const image=await loadImage(atlas);
+  const tiles=createCanvas(image.width,image.height).getContext('2d');
+  tiles.drawImage(image,0,0);
+  let nextOffset=0;
+  for(const [index,area] of answers.entries()){
+   const {x,y,w,h,offset,label}=area;
+   assert.ok(label && x>=0 && y>=0 && w>0 && h>0 && x+w<=width && y+h<=height);
+   assert.ok(w<=image.width && offset+h<=image.height);
+   assert.equal(offset,nextOffset);
+   nextOffset+=h;
+   for(const other of answers.slice(0,index)){
+    assert.ok(x>=other.x+other.w || other.x>=x+w ||
+      y>=other.y+other.h || other.y>=y+h,'Tap areas must stay distinct');
+   }
+   const before=native.getImageData(x,y,w,h).data;
+   const after=tiles.getImageData(0,offset,w,h).data;
+   let visible=0;
+   for(let i=0;i<before.length;i+=4){
+    if(Math.max(...[0,1,2].map(c=>Math.abs(before[i+c]-after[i+c])))>=22)visible++;
+   }
+   assert.ok(visible>=150,'Set '+id+': '+label);
+  }
+  assert.equal(nextOffset,image.height);
+  layouts.add(answers.map(({x,y})=>x+','+y).sort().join('|'));
+ }
+ assert.equal(layouts.size,10);
  const base=createCanvas(983,750);base.getContext('2d').drawImage(art,0,0,983,750);
  const valid=R.prepare(base,patches,createCanvas);
  assert.ok(valid.length>=120,'Need at least 120 clear candidate edits, got '+valid.length);
@@ -111,6 +144,17 @@ async function main(){
  assert.equal(loaded.length,11);
  assert.equal(new Set(loaded.slice(0,10)).size,10);
  assert.notEqual(loaded[9],loaded[10]);
+ const tested=new Set();
+ for(let i=0;tested.size<10 && i<19;i++){
+  await click('restart');
+  const current=requests.filter(r=>r.url.startsWith('sets/')).at(-1).url;
+  tested.add(current);
+  for(const p of state('points'))tap(p);
+  assert.equal(state('found.size'),10,current);
+  assert.equal(state('phase'),'won');
+ }
+ assert.equal(tested.size,10);
+ console.log('PASS: all 100 answer tiles contain visible edits and all 100 tap targets score.');
  console.log('PASS: ten-set rotation without repeats, including the cycle boundary.');
  console.log('PASS: original engine plus upgrade: real canvas rendering, scoring, duplicate handling, answers, restart, timer expiry, manual ending, zoom and pinch suppression.');
 }
