@@ -105,8 +105,10 @@ async function main(){
  for(const m of html.matchAll(/id="([^"]+)"/g))nodes[m[1]]=makeNode(['top','bottom'].includes(m[1]));
  for(const id of ['budget-count','random-note','round-info','stop-round','answer-guide','answer-list'])nodes[id]=makeNode();
  const extra={'header p':makeNode(),'.setup':makeNode(),main:makeNode()};
+ let comparisonCanvas;
  const document={getElementById:id=>nodes[id],createElement:tag=>{
   const n=makeNode(tag==='canvas');
+  if(tag==='canvas')comparisonCanvas=n;
   let id;Object.defineProperty(n,'id',{get:()=>id,set:v=>{id=v;nodes[v]=n;},configurable:true});
   return n;
  },querySelector:selector=>extra[selector],head:makeNode(),activeElement:null};
@@ -162,7 +164,7 @@ async function main(){
   if(area){
    const {x,y,w,h}=area;
    const before=native.getImageData(x,y,w,h).data;
-   const after=state('comparison').getContext('2d').getImageData(x,y,w,h).data;
+   const after=comparisonCanvas.getContext('2d').getImageData(x,y,w,h).data;
    let bluePixels=0;
    for(let p=0;p<before.length;p+=4){
     if(before[p]-before[p+2]>=62 && after[p+2]-after[p]>=90)bluePixels++;
