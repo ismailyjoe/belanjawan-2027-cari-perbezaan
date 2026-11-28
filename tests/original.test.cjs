@@ -11,7 +11,8 @@ async function main(){
  const art=await loadImage(imageData('artwork')),patches=await loadImage(imageData('colourPatches'));
  const native=createCanvas(art.width,art.height).getContext('2d');
  native.drawImage(art,0,0);
- const layouts=new Set();
+ const layouts=[];
+ const locations=new Set();
  for(let id=1;id<=10;id++){
   const {width,height,answers,atlas}=JSON.parse(fs.readFileSync('sets/'+id+'.json','utf8'));
   assert.deepEqual([width,height],[art.width,art.height]);
@@ -39,9 +40,15 @@ async function main(){
    assert.ok(visible>=150,'Set '+id+': '+label);
   }
   assert.equal(nextOffset,image.height);
-  layouts.add(answers.map(({x,y})=>x+','+y).sort().join('|'));
+  const layout=new Set(answers.map(({location})=>location));
+  for(const prior of layouts){
+   assert.ok([...layout].filter(location=>prior.has(location)).length<=6,'Sets must differ in at least four locations');
+  }
+  layouts.push(layout);
+  for(const location of layout)locations.add(location);
  }
- assert.equal(layouts.size,10);
+ assert.equal(layouts.length,10);
+ assert.ok(locations.size>=21,'Use at least 21 distinct edit locations across the set rotation');
  const base=createCanvas(983,750);base.getContext('2d').drawImage(art,0,0,983,750);
  const valid=R.prepare(base,patches,createCanvas);
  assert.ok(valid.length>=120,'Need at least 120 clear candidate edits, got '+valid.length);

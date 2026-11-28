@@ -18,7 +18,7 @@
       }
     }catch{}
     const intro=document.querySelector('header p');intro.textContent='Ilustrasi asal Belanjawan 2027. Terdapat 10 set, dengan 10 perbezaan dalam setiap set. Ketik perbezaan pada gambar bawah.';
-    const hint=document.createElement('p');hint.id='random-note';hint.textContent='Perhatikan perubahan objek, tulisan, bilangan orang dan warna.';document.querySelector('.setup').after(hint);
+    const hint=document.createElement('p');hint.id='random-note';hint.textContent='Cari perubahan pada objek, papan tanda, aksesori, watak dan warna.';document.querySelector('.setup').after(hint);
     const label=document.createElement('p');label.id='round-info';$('game').prepend(label);
     const stop=document.createElement('button');stop.id='stop-round';stop.textContent='Tamatkan pusingan';$('reveal').before(stop);
     const guide=document.createElement('section');guide.id='answer-guide';guide.hidden=true;const title=document.createElement('h2');title.textContent='Jawapan pusingan ini';const list=document.createElement('ol');list.id='answer-list';guide.append(title,list);$('game').append(guide);
@@ -37,7 +37,7 @@
       return remaining[0];
     }
     async function loadSet(id){
-      const response=await fetch('sets/'+id+'.json?v=8');
+      const response=await fetch('sets/'+id+'.json?v=9');
       if(!response.ok)throw Error('Set tidak dapat dimuatkan.');
       const {width,height,answers,atlas}=await response.json();
       if(width!==artwork.naturalWidth||height!==artwork.naturalHeight||answers?.length!==10)throw Error('Set tidak lengkap.');
