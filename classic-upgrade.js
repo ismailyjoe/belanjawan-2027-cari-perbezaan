@@ -31,10 +31,13 @@
     const intro=document.querySelector('header p');intro.textContent='Ilustrasi asal Belanjawan 2027. Terdapat 10 set, dengan 10 perbezaan dalam setiap set. Ketik perbezaan pada gambar bawah.';
     const hint=document.createElement('p');hint.id='random-note';hint.textContent='Cari perubahan pada objek, papan tanda, aksesori, watak dan warna.';document.querySelector('.setup').after(hint);
     const label=document.createElement('p');label.id='round-info';$('game').prepend(label);
+    const reveal=$('reveal');
+    reveal.setAttribute('aria-controls','answer-guide');
+    reveal.setAttribute('aria-expanded','false');
     const stop=document.createElement('button');stop.id='stop-round';stop.textContent='Tamatkan pusingan';$('reveal').before(stop);
-    const guide=document.createElement('section');guide.id='answer-guide';guide.hidden=true;const title=document.createElement('h2');title.textContent='Jawapan pusingan ini';const list=document.createElement('ol');list.id='answer-list';guide.append(title,list);$('game').append(guide);
+    const guide=document.createElement('section');guide.id='answer-guide';guide.hidden=true;const list=document.createElement('ol');list.id='answer-list';guide.append(list);$('game').append(guide);
     const footer=document.createElement('footer');footer.innerHTML='<p>Jumlah dimainkan: <b id="budget-count">—</b> · <a href="https://ismailyjoe.github.io/belanjawan-2027-game/landing.html">← Kembali ke Menu Utama</a></p><p>© 2026 IBJ. All rights reserved. Made by IBJ.</p>';document.querySelector('main').append(footer);
-    const style=document.createElement('style');style.textContent='#round-info{font-size:.84rem;font-weight:700;color:#536851}#random-note,footer{font-size:.87rem;color:#536851}footer{border-top:1px solid #d8d0bc;margin-top:25px;padding-top:10px}#answer-guide{border:1px solid #c6cfbb;border-radius:12px;padding:18px;margin-top:20px}#answer-guide h2{font:700 25px Georgia;margin:0 0 12px}#answer-list{padding-left:25px}#answer-list li{margin:0 0 10px;line-height:1.45}#answer-list small{display:block;color:#536851}button{min-height:42px}';document.head.append(style);
+    const style=document.createElement('style');style.textContent='#round-info{font-size:.84rem;font-weight:700;color:#536851}#random-note,footer{font-size:.87rem;color:#536851}footer{border-top:1px solid #d8d0bc;margin-top:25px;padding-top:10px}#answer-guide{border:1px solid #c6cfbb;border-radius:12px;padding:18px;margin-top:20px}#answer-list{padding-left:25px}#answer-list li{margin:0 0 10px;line-height:1.45}#answer-list small{display:block;color:#536851}button{min-height:42px}';document.head.append(style);
     function region(p){return (p.y<250?'Bahagian atas':p.y<500?'Bahagian tengah':'Bahagian bawah')+' · '+(p.x<328?'kiri':p.x<656?'tengah':'kanan');}
     function nextSet(){
       if(!remaining.length){
@@ -92,7 +95,7 @@
       if(phase!=='playing')return;
       phase=won?'won':ended?'ended':'expired';clearInterval(clock);stop.disabled=true;
       $('status').textContent=won?'Tahniah! Semua 10 perbezaan ditemui.':ended?'Pusingan ditamatkan. '+found.size+' daripada 10 ditemui.':'Masa tamat. '+found.size+' daripada 10 ditemui.';
-      $('reveal').hidden=false;$('reveal').textContent='Lihat jawapan pusingan ini';
+      reveal.hidden=false;reveal.textContent='Lihat jawapan pusingan ini';
       $('restart').textContent='Pemain seterusnya';
     };
     guess=function(x,y){
@@ -129,7 +132,7 @@
         comparison=image;round=0;
         points.splice(0,points.length,...areas);sets[0]=areas.map((_,i)=>i);
         found=new Set();phase='playing';answers=false;miss=null;cursor=null;deadline=0;zoom=1;offsetX=offsetY=0;roundToken++;sequence++;
-        $('game').hidden=false;$('start').hidden=true;$('reveal').hidden=true;guide.hidden=true;list.replaceChildren();stop.disabled=false;
+        $('game').hidden=false;$('start').hidden=true;reveal.hidden=true;reveal.setAttribute('aria-expanded','false');guide.hidden=true;list.replaceChildren();stop.disabled=false;
         $('time').hidden=!$('timed').checked;$('time').textContent='03:00';
         label.textContent='Pusingan '+sequence+' · 10 perbezaan';
         $('status').textContent='Cubit untuk zum dan seret gambar untuk mengalih pandangan.';
@@ -147,9 +150,14 @@
     };
     $('start').onclick=()=>begin();$('restart').onclick=()=>begin();
     stop.onclick=()=>{timeTick();finish(false,true);};
-    $('reveal').onclick=()=>{
+    reveal.onclick=()=>{
       if(phase==='playing'||round<0)return;
-      answers=true;guide.hidden=false;$('reveal').hidden=true;list.replaceChildren();
+      answers=!answers;
+      guide.hidden=!answers;
+      reveal.setAttribute('aria-expanded',String(answers));
+      reveal.textContent=answers?'Sembunyikan jawapan pusingan ini':'Lihat jawapan pusingan ini';
+      if(!answers){draw();return;}
+      list.replaceChildren();
       sets[round].forEach(i=>{const p=points[i],li=document.createElement('li'),small=document.createElement('small');li.textContent=p.label;small.textContent=region(p)+' · '+(found.has(i)?'Ditemui':'Belum ditemui');li.append(small);list.append(li);});draw();
     };
     const counterURL='https://belanjawan-2027-games-default-rtdb.asia-southeast1.firebasedatabase.app/counters/cari_perbezaan.json';

@@ -131,6 +131,13 @@ async function main(){
  tap(selection[0]);assert.equal(state('found.size'),1);tap(selection[0]);assert.equal(state('found.size'),1,'No double counting');
  for(const p of selection.slice(1))tap(p);
  assert.equal(state('phase'),'won');assert.equal(state('found.size'),10);
+ assert.equal(nodes['answer-guide'].hidden,true);
+ assert.equal(nodes.reveal['aria-expanded'],'false');
+ click('reveal');assert.equal(state('answers'),true);assert.equal(nodes['answer-list'].children.length,10);
+ assert.equal(nodes.reveal['aria-expanded'],'true');
+ assert.equal(nodes.reveal.hidden,false);
+ click('reveal');assert.equal(state('answers'),false);assert.equal(nodes['answer-guide'].hidden,true);
+ assert.equal(nodes.reveal['aria-expanded'],'false');
  click('reveal');assert.equal(state('answers'),true);assert.equal(nodes['answer-list'].children.length,10);
  await click('restart');assert.notEqual(requests.filter(r=>r.url.startsWith('sets/'))[0].url,requests.filter(r=>r.url.startsWith('sets/'))[1].url);
  assert.equal(state('found.size'),0);assert.equal(state('answers'),false);assert.equal(nodes['answer-guide'].hidden,true);
