@@ -3,7 +3,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const {execFileSync}=require('node:child_process');
 const {createCanvas,loadImage}=require('@napi-rs/canvas');
-const R=require('../classic-upgrade.js');
+const R=require('../crisp-differences.js');
 async function main(){
  const html=fs.readFileSync('game-original.html','utf8'),source=fs.readFileSync('classic-upgrade.js','utf8');
  assert.equal(execFileSync('git',['hash-object','game-original.html'],{encoding:'utf8'}).trim(),'7963ea0935a6ee1b1008e20e882907b2989e633a','Original illustration file must remain byte-for-byte unchanged');
@@ -59,7 +59,7 @@ async function main(){
  }
  function makeNode(canvas=false){
   const n=canvas?createCanvas(983,750):new Element();
-  if(canvas){for(const k of Object.getOwnPropertyNames(Element.prototype))if(k!=='constructor')n[k]=Element.prototype[k];n.listeners={};n.children=[];n.clientLeft=n.clientTop=0;n.clientWidth=983;n.clientHeight=750;n.getBoundingClientRect=()=>({left:0,top:0});}
+  if(canvas){const getContext=n.getContext.bind(n);n.getContext=(...args)=>{const ctx=getContext(...args);if(!ctx.adapted){const draw=ctx.drawImage.bind(ctx);ctx.drawImage=(image,...coords)=>draw(image.native??image,...coords);ctx.adapted=true;}return ctx;};for(const k of Object.getOwnPropertyNames(Element.prototype))if(k!=='constructor')n[k]=Element.prototype[k];n.listeners={};n.children=[];n.clientLeft=n.clientTop=0;n.clientWidth=983;n.clientHeight=750;n.getBoundingClientRect=()=>({left:0,top:0});}
   return n;
  }
  for(const m of html.matchAll(/id="([^"]+)"/g))nodes[m[1]]=makeNode(['top','bottom'].includes(m[1]));
@@ -72,17 +72,17 @@ async function main(){
  },querySelector:selector=>extra[selector],head:makeNode(),activeElement:null};
  // Native image properties are available in browsers; provide them in the test host too.
  for(const image of [art,patches]){if(!image.complete)Object.defineProperty(image,'complete',{value:true});if(!image.naturalWidth)Object.defineProperty(image,'naturalWidth',{value:image.width});}
- const sandbox={BelanjawanDifferences:require('../crisp-differences.js'),document,console,Intl,Math,Map,Set,Uint32Array,__artwork:art,__patches:patches,localStorage:{getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v)},performance:{now:()=>now},crypto:{getRandomValues:a=>{a[0]=++nextSeed;return a;}},setInterval:f=>{const id=intervals.size+1;intervals.set(id,f);return id;},clearInterval:id=>intervals.delete(id),setTimeout:()=>1,clearTimeout(){},requestAnimationFrame:f=>f(),fetch:async(url,options)=>{requests.push({url,options});return {ok:false};}};
+ const sandbox={BelanjawanDifferences:require('../crisp-differences.js'),document,console,Intl,Math,Map,Set,Uint32Array,__artwork:art,__patches:patches,localStorage:{getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v)},performance:{now:()=>now},crypto:{getRandomValues:a=>{a[0]=++nextSeed;return a;}},setInterval:f=>{const id=intervals.size+1;intervals.set(id,f);return id;},clearInterval:id=>intervals.delete(id),setTimeout:()=>1,clearTimeout(){},requestAnimationFrame:f=>f(),Image:class{async decode(){return loadImage(this.src).then(image=>{this.native=image;});}},fetch:async(url,options)=>{requests.push({url,options});return url.startsWith('sets/')?{ok:true,json:()=>JSON.parse(fs.readFileSync(url.split('?')[0],'utf8'))}:{ok:false};}};
  sandbox.window=sandbox;sandbox.globalThis=sandbox;vm.createContext(sandbox);
  let originalScript=html.match(/<script>([\s\S]*?)<\/script>/)[1];
  originalScript=originalScript.replace('const artwork=new Image();','const artwork=__artwork;').replace('const colourPatches=new Image();','const colourPatches=__patches;');
  originalScript=originalScript.replace(/\$\('start'\)\.disabled=true;[\s\S]*?(?=function paintChange)/,"$('start').disabled=false;\n");
  vm.runInContext(originalScript,sandbox);vm.runInContext(source,sandbox);
  function state(expression){return vm.runInContext(expression,sandbox);}
- function click(id){nodes[id].onclick();}
+ function click(id){return nodes[id].onclick();}
  function tap(p,dx=0){const canvas=nodes.bottom;const ev={button:0,pointerId:1,pointerType:'mouse',clientX:p.x+dx,clientY:p.y,type:'pointerdown'};canvas.listeners.pointerdown(ev);canvas.listeners.pointerup({...ev,type:'pointerup'});}
  assert.equal(nodes.timed.checked,true,'Three-minute timer is enabled by default');
- click('start');assert.equal(nodes.time.textContent,'03:00');assert.equal(nodes.time.hidden,false);assert.equal(state('phase'),'playing');assert.equal(state('sets[round].length'),10);assert.equal(nodes.score.textContent,'0 / 10 ditemui');
+ await click('start');assert.equal(nodes.time.textContent,'03:00');assert.equal(nodes.time.hidden,false);assert.equal(state('phase'),'playing');assert.equal(state('sets[round].length'),10);assert.equal(nodes.score.textContent,'0 / 10 ditemui');
  assert.equal(requests.filter(r=>r.options?.method==='PUT').length,1);
  click('reveal');assert.equal(state('answers'),false,'Answers must stay hidden during play');
  const selection=state('sets[round].map(i=>points[i])');
@@ -90,13 +90,13 @@ async function main(){
  for(const p of selection.slice(1))tap(p);
  assert.equal(state('phase'),'won');assert.equal(state('found.size'),10);
  click('reveal');assert.equal(state('answers'),true);assert.equal(nodes['answer-list'].children.length,10);
- const oldIds=selection.map(p=>p.id);click('restart');const fresh=state('sets[round].map(i=>points[i].id)');assert.ok(fresh.filter(id=>oldIds.includes(id)).length<=5);
+ await click('restart');assert.notEqual(requests.filter(r=>r.url.startsWith('sets/'))[0].url,requests.filter(r=>r.url.startsWith('sets/'))[1].url);
  assert.equal(state('found.size'),0);assert.equal(state('answers'),false);assert.equal(nodes['answer-guide'].hidden,true);
- nodes.timed.checked=true;click('restart');assert.equal(nodes.time.textContent,'03:00');now+=179999;[...intervals.values()].forEach(f=>f());assert.equal(state('phase'),'playing');assert.equal(nodes.time.textContent,'00:01');now+=1;[...intervals.values()].forEach(f=>f());assert.equal(state('phase'),'expired');assert.equal(nodes.time.textContent,'00:00');
+ nodes.timed.checked=true;await click('restart');assert.equal(nodes.time.textContent,'03:00');now+=179999;[...intervals.values()].forEach(f=>f());assert.equal(state('phase'),'playing');assert.equal(nodes.time.textContent,'00:01');now+=1;[...intervals.values()].forEach(f=>f());assert.equal(state('phase'),'expired');assert.equal(nodes.time.textContent,'00:00');
  const before=state('found.size');tap(state('points[sets[round][0]]'));assert.equal(state('found.size'),before);
- nodes.timed.checked=false;click('restart');now+=180000;[...intervals.values()].forEach(f=>f());assert.equal(state('phase'),'playing','Untimed option still works');assert.equal(nodes.time.hidden,true);nodes.timed.checked=true;
- click('restart');click('stop-round');assert.equal(state('phase'),'ended');click('reveal');assert.equal(nodes['answer-list'].children.length,10);
- click('restart');nodes.in.onclick();assert.equal(state('zoom'),1.5);nodes.reset.onclick();assert.equal(state('zoom'),1);
+ nodes.timed.checked=false;await click('restart');now+=180000;[...intervals.values()].forEach(f=>f());assert.equal(state('phase'),'playing','Untimed option still works');assert.equal(nodes.time.hidden,true);nodes.timed.checked=true;
+ await click('restart');click('stop-round');assert.equal(state('phase'),'ended');click('reveal');assert.equal(nodes['answer-list'].children.length,10);
+ await click('restart');nodes.in.onclick();assert.equal(state('zoom'),1.5);nodes.reset.onclick();assert.equal(state('zoom'),1);
  // A cancelled/pinched gesture cannot become an answer.
  const target=state('points[sets[round][0]]'),canvas=nodes.bottom;
  const event=(type,id,x,y)=>({type,pointerId:id,clientX:x,clientY:y,button:0,pointerType:'touch'});
@@ -106,6 +106,12 @@ async function main(){
  canvas.listeners.pointerup(event('pointerup',11,target.x+60,target.y));
  canvas.listeners.pointerup(event('pointerup',10,target.x-30,target.y));
  assert.equal(state('found.size'),0);assert.ok(state('zoom')>1);
+ for(let i=6;i<11;i++)await click('restart');
+ const loaded=requests.filter(r=>r.url.startsWith('sets/')).map(r=>r.url);
+ assert.equal(loaded.length,11);
+ assert.equal(new Set(loaded.slice(0,10)).size,10);
+ assert.notEqual(loaded[9],loaded[10]);
+ console.log('PASS: ten-set rotation without repeats, including the cycle boundary.');
  console.log('PASS: original engine plus upgrade: real canvas rendering, scoring, duplicate handling, answers, restart, timer expiry, manual ending, zoom and pinch suppression.');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
