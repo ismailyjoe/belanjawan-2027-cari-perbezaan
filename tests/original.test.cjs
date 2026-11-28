@@ -152,15 +152,31 @@ async function main(){
  assert.equal(new Set(loaded.slice(0,10)).size,10);
  assert.notEqual(loaded[9],loaded[10]);
  const tested=new Set();
+ const verifiedJackets=new Set();
  for(let i=0;tested.size<10 && i<19;i++){
   await click('restart');
   const current=requests.filter(r=>r.url.startsWith('sets/')).at(-1).url;
   tested.add(current);
+  const {answers}=JSON.parse(fs.readFileSync(current.split('?')[0],'utf8'));
+  const area=answers.find(answer=>answer.location==='1794,1111');
+  if(area){
+   const {x,y,w,h}=area;
+   const before=native.getImageData(x,y,w,h).data;
+   const after=state('comparison').getContext('2d').getImageData(x,y,w,h).data;
+   let bluePixels=0;
+   for(let p=0;p<before.length;p+=4){
+    if(before[p]-before[p+2]>=62 && after[p+2]-after[p]>=90)bluePixels++;
+   }
+   assert.ok(bluePixels>=120,'The fisherman’s orange jacket must become clearly blue in '+current);
+   assert.ok(state('points').some(point=>point.label.includes('jingga kepada biru')));
+   verifiedJackets.add(current);
+  }
   for(const p of state('points'))tap(p);
   assert.equal(state('found.size'),10,current);
   assert.equal(state('phase'),'won');
  }
  assert.equal(tested.size,10);
+ assert.equal(verifiedJackets.size,6);
  console.log('PASS: all 100 answer tiles contain visible edits and all 100 tap targets score.');
  console.log('PASS: ten-set rotation without repeats, including the cycle boundary.');
  console.log('PASS: original engine plus upgrade: real canvas rendering, scoring, duplicate handling, answers, restart, timer expiry, manual ending, zoom and pinch suppression.');
