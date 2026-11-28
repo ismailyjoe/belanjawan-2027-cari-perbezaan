@@ -1,0 +1,20 @@
+name: Validate original illustration game
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install development-only Canvas renderer
+        run: npm install --no-save --package-lock=false @napi-rs/canvas
+      - name: Check JavaScript syntax
+        run: node --check classic-upgrade.js
+      - name: Verify original artwork and randomized gameplay
+        run: node tests/original.test.cjs

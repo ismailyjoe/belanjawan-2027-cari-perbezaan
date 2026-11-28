@@ -1,25 +1,18 @@
 <!doctype html>
-<html lang="ms"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#244f40"><meta name="description" content="Cari 10 perbezaan dalam enam suasana komuniti. Cabaran baharu untuk setiap pemain.">
-<title>Belanjawan 2027 — Cari Perbezaan</title>
-<link rel="stylesheet" href="style.css?v=2"><script src="scenes.js?v=2" defer></script><script src="game.js?v=2" defer></script>
-</head><body><main>
-<header><a class="back" href="https://ismailyjoe.github.io/belanjawan-2027-game/landing.html">← Menu permainan</a>
-<div class="eyebrow">BELANJAWAN 2027 <span>EDISI KOMUNITI</span></div>
-<h1>Mata tajam,<br><em>cabaran baharu.</em></h1><p class="intro">Enam suasana. Sepuluh perbezaan. Kombinasi baharu setiap kali anda bermain.</p></header>
-<section id="setup" class="setup" aria-label="Tetapan permainan">
-<div class="setup-heading"><span class="step">01</span><div><h2>Pilih suasana anda</h2><p>Atau biarkan kami pilih secara rawak.</p></div></div>
-<div class="scene-grid" id="scene-choices" role="group" aria-label="Pilihan suasana"></div>
-<div class="options"><label><input type="checkbox" id="timed"><span>Had masa 5 minit<small>Tanpa had masa secara lalai</small></span></label><label><input type="checkbox" id="turns"><span>Mod giliran<small>Suasana baharu untuk pemain seterusnya</small></span></label></div>
-<div class="launch"><button class="primary" id="start">Mula mencari <span aria-hidden="true">↗</span></button><p>Objek, bilangan, arah, corak dan butiran — perhatikan semuanya.</p></div></section>
-<section id="game" hidden aria-label="Permainan cari perbezaan">
-<div class="round-heading"><div><div class="eyebrow" id="round-label"></div><h2 id="scene-name"></h2><p id="scene-tag"></p></div><button id="settings" class="quiet">Tukar suasana</button></div>
-<div class="toolbar"><div class="progress"><strong id="score" aria-live="polite">0 / 10</strong><span>ditemui</span></div><div id="time-wrap"><span id="time" role="timer">00:00</span><small id="time-label">masa bermain</small></div><div class="zoom-controls"><button id="out" aria-label="Zum keluar">−</button><button id="reset" aria-label="Tetapkan semula zum">1×</button><button id="in" aria-label="Zum masuk">+</button></div><button id="end" class="quiet">Tamatkan</button></div>
-<p id="status" role="status">Bandingkan kedua-dua gambar. Ketik perbezaan pada mana-mana gambar.</p><div class="game-notes"><span>3 mudah · 4 sederhana · 3 sukar</span><span>Cubit untuk zum · Seret untuk alih</span></div>
-<figure><figcaption><span><b>01</b> GAMBAR ASAL</span><small>Perhatikan dengan teliti</small></figcaption><canvas id="top" width="1080" height="760" tabindex="0" aria-label="Gambar asal. Gunakan kekunci anak panah untuk sasaran dan Enter untuk meneka."></canvas></figure>
-<figure><figcaption><span><b>02</b> CARI PERBEZAAN</span><small>10 perubahan tersembunyi</small></figcaption><canvas id="bottom" width="1080" height="760" tabindex="0" aria-label="Gambar yang diubah. Gunakan kekunci anak panah untuk sasaran dan Enter untuk meneka."></canvas></figure>
-<div class="round-actions"><button id="restart">Cabaran baharu ↗</button><span>Setiap pusingan mempunyai kombinasi tersendiri.</span></div>
-<section id="result" class="result" hidden aria-labelledby="result-title"><div class="eyebrow">PUSINGAN SELESAI</div><h2 id="result-title"></h2><p id="result-detail"></p><div class="result-actions"><button class="primary" id="next">Main lagi ↗</button><button id="reveal">Lihat jawapan pusingan ini</button></div><div id="answer-guide" hidden><h3>Panduan jawapan</h3><p>Nombor pada gambar sepadan dengan senarai ini. Hijau: ditemui. Jingga: belum ditemui.</p><ol id="answer-list"></ol></div></section></section>
-<footer><span>© 2026 IBJ. All rights reserved. Made by IBJ.</span><span>Jumlah dimainkan: <b id="budget-count">—</b></span><a href="game-original.html">Versi asal</a></footer>
-</main><dialog id="confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title">Tamatkan pusingan ini?</h2><p>Anda boleh melihat jawapan selepas pusingan ditamatkan.</p><div><button id="confirm-cancel">Teruskan bermain</button><button id="confirm-yes" class="primary">Tamatkan pusingan</button></div></dialog></body></html>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#24553d"><title>Belanjawan 2027 — Cari Perbezaan</title></head>
+<body><p id="loading" role="status">Memuatkan ilustrasi Belanjawan…</p>
+<script>
+(async()=>{
+  try{
+    const response=await fetch('game-original.html?v=3',{cache:'no-cache'});
+    if(!response.ok)throw Error('Gambar gagal dimuatkan.');
+    const original=await response.text();
+    if(!original.includes('function begin(){')||!original.includes("artwork.src='data:image/"))throw Error('Fail permainan tidak lengkap.');
+    const upgraded=original+'<scr'+'ipt src="classic-upgrade.js?v=3"></scr'+'ipt>';
+    document.open();document.write(upgraded);document.close();
+  }catch(error){
+    const notice=document.getElementById('loading');
+    if(notice){notice.textContent='Permainan gagal dimuatkan. Sila muat semula halaman. ';const link=document.createElement('a');link.href='game-original.html';link.textContent='Buka versi asal';notice.append(link);}
+  }
+})();
+</script></body></html>
