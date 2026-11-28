@@ -6,6 +6,17 @@
   'use strict';
   const SET_COUNT = 10;
   const KEY = 'ibj-belanjawan-set-cycle-v6';
+  const FISHERMAN_JACKET = '1794,1111';
+  function recolourJacket(pixels){
+    for(let i=0;i<pixels.length;i+=4){
+      const red=pixels[i], green=pixels[i+1], blue=pixels[i+2];
+      if(red-green<22||green-blue<14||red-blue<62)continue;
+      // Preserve the fabric's folds while shifting reflective orange to cobalt blue.
+      pixels[i]=Math.round(red*.17);
+      pixels[i+1]=Math.round(red*.46);
+      pixels[i+2]=Math.min(255,Math.round(red*1.14));
+    }
+  }
   function install(){
     if(typeof document==='undefined'||typeof artwork==='undefined')return;
     $('timed').checked=true;
@@ -49,8 +60,15 @@
       image.height=height;
       const ctx=image.getContext('2d');
       ctx.drawImage(artwork,0,0);
-      const areas=answers.map(({label,x,y,w,h,offset})=>{
-        ctx.drawImage(tiles,0,offset,w,h,x,y,w,h);
+      const areas=answers.map(({label,x,y,w,h,offset,location})=>{
+        if(location===FISHERMAN_JACKET){
+          const jacket=ctx.getImageData(x,y,w,h);
+          recolourJacket(jacket.data);
+          ctx.putImageData(jacket,x,y);
+          label='Jaket keselamatan nelayan bertukar daripada jingga kepada biru.';
+        }else{
+          ctx.drawImage(tiles,0,offset,w,h,x,y,w,h);
+        }
         const halfWidth=w*W/width/2,halfHeight=h*H/height/2;
         return {label,x:x*W/width+halfWidth,y:y*H/height+halfHeight,halfWidth,halfHeight,r:Math.hypot(halfWidth,halfHeight)};
       });
@@ -138,5 +156,5 @@
     async function count(increment){try{const r=await fetch(counterURL,increment?{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({'.sv':{increment:1}})}:{cache:'no-store'});if(!r.ok)return;const value=await r.json();if(typeof value==='number')$('budget-count').textContent=new Intl.NumberFormat('ms-MY').format(value);}catch{}}
     count(false);
   }
-  return {install};
+  return {install,recolourJacket};
 });
