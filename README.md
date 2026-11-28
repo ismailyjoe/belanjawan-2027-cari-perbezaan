@@ -10,7 +10,7 @@ Spot-the-difference game using the original Belanjawan illustration. `game-origi
 - No mirrored, rotated, enlarged or feathered image patches; no legacy colour-patch tiles. Actual source pixels never move or rescale during colour/fabric changes.
 - Each round selects ten non-overlapping changes, including at least three added items, two colour changes, two fabric changes and one clear detail. Alternate changes to the same object are mutually exclusive.
 - Recent rounds are remembered locally to reduce repeated answer locations on the same device.
-- The original-on-top and comparison-below layout, optional five-minute timer, synchronized pinch/zoom/pan, keyboard input, Firebase play counter, menu link and copyright are retained.
+- The original-on-top and comparison-below layout, three-minute timer enabled by default (can be disabled), synchronized pinch/zoom/pan, keyboard input, Firebase play counter, menu link and copyright are retained.
 - Numbered answers become available after completion, expiry or pressing “Tamatkan pusingan”.
 
 No build step or third-party browser dependencies are required. The original fixed-set game remains directly available at `game-original.html`.

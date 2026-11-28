@@ -81,7 +81,8 @@ async function main(){
  function state(expression){return vm.runInContext(expression,sandbox);}
  function click(id){nodes[id].onclick();}
  function tap(p,dx=0){const canvas=nodes.bottom;const ev={button:0,pointerId:1,pointerType:'mouse',clientX:p.x+dx,clientY:p.y,type:'pointerdown'};canvas.listeners.pointerdown(ev);canvas.listeners.pointerup({...ev,type:'pointerup'});}
- click('start');assert.equal(state('phase'),'playing');assert.equal(state('sets[round].length'),10);assert.equal(nodes.score.textContent,'0 / 10 ditemui');
+ assert.equal(nodes.timed.checked,true,'Three-minute timer is enabled by default');
+ click('start');assert.equal(nodes.time.textContent,'03:00');assert.equal(nodes.time.hidden,false);assert.equal(state('phase'),'playing');assert.equal(state('sets[round].length'),10);assert.equal(nodes.score.textContent,'0 / 10 ditemui');
  assert.equal(requests.filter(r=>r.options?.method==='PUT').length,1);
  click('reveal');assert.equal(state('answers'),false,'Answers must stay hidden during play');
  const selection=state('sets[round].map(i=>points[i])');
@@ -91,8 +92,9 @@ async function main(){
  click('reveal');assert.equal(state('answers'),true);assert.equal(nodes['answer-list'].children.length,10);
  const oldIds=selection.map(p=>p.id);click('restart');const fresh=state('sets[round].map(i=>points[i].id)');assert.ok(fresh.filter(id=>oldIds.includes(id)).length<=5);
  assert.equal(state('found.size'),0);assert.equal(state('answers'),false);assert.equal(nodes['answer-guide'].hidden,true);
- nodes.timed.checked=true;click('restart');now+=300000;[...intervals.values()].forEach(f=>f());assert.equal(state('phase'),'expired');assert.equal(nodes.time.textContent,'00:00');
+ nodes.timed.checked=true;click('restart');assert.equal(nodes.time.textContent,'03:00');now+=179999;[...intervals.values()].forEach(f=>f());assert.equal(state('phase'),'playing');assert.equal(nodes.time.textContent,'00:01');now+=1;[...intervals.values()].forEach(f=>f());assert.equal(state('phase'),'expired');assert.equal(nodes.time.textContent,'00:00');
  const before=state('found.size');tap(state('points[sets[round][0]]'));assert.equal(state('found.size'),before);
+ nodes.timed.checked=false;click('restart');now+=180000;[...intervals.values()].forEach(f=>f());assert.equal(state('phase'),'playing','Untimed option still works');assert.equal(nodes.time.hidden,true);nodes.timed.checked=true;
  click('restart');click('stop-round');assert.equal(state('phase'),'ended');click('reveal');assert.equal(nodes['answer-list'].children.length,10);
  click('restart');nodes.in.onclick();assert.equal(state('zoom'),1.5);nodes.reset.onclick();assert.equal(state('zoom'),1);
  // A cancelled/pinched gesture cannot become an answer.

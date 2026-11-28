@@ -10,6 +10,7 @@
   const {WIDTH,HEIGHT,pool,rng,shuffle,conflicts,select,prepare}=core;
   function install(){
     if(typeof document==='undefined'||typeof artwork==='undefined')return;
+    $('timed').checked=true;
     const KEY='ibj-original-crisp-v4';let history=[],prepared=null,sequence=0,started=0;
     try{const h=JSON.parse(localStorage.getItem(KEY));if(Array.isArray(h))history=h.filter(a=>Array.isArray(a)&&a.every(x=>typeof x==='string')).slice(-20);}catch{}
     const intro=document.querySelector('header p');intro.textContent='Ilustrasi asal Belanjawan 2027. Setiap pusingan mempunyai 10 perbezaan rawak. Ketik perbezaan pada gambar bawah.';
@@ -56,10 +57,10 @@
         clearInterval(clock);clearTimeout(missTimer);round=0;sets[0]=selected.map(p=>points.indexOf(p));
         found=new Set();phase='playing';answers=false;miss=null;cursor=null;deadline=0;zoom=1;offsetX=offsetY=0;roundToken++;started=performance.now();sequence++;
         $('game').hidden=false;$('start').hidden=true;$('reveal').hidden=true;guide.hidden=true;list.replaceChildren();stop.disabled=false;
-        $('time').hidden=!$('timed').checked;$('time').textContent='05:00';$('restart').textContent='Cabaran baharu';
+        $('time').hidden=!$('timed').checked;$('time').textContent='03:00';$('restart').textContent='Cabaran baharu';
         label.textContent='Pusingan '+sequence+' · Set '+n.toString(36).toUpperCase()+' · 10 perbezaan rawak';
         $('status').textContent='Cubaan baharu, kombinasi baharu. Cubit untuk zum dan seret gambar untuk mengalih pandangan.';
-        updateScore();draw();if($('timed').checked){deadline=started+300000;timeTick();clock=setInterval(timeTick,100);}
+        updateScore();draw();if($('timed').checked){deadline=started+180000;timeTick();clock=setInterval(timeTick,100);}
         count(true);
       }catch(e){$('status').textContent=e.message;$('game').hidden=false;}
     };
