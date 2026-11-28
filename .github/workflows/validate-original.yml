@@ -15,6 +15,6 @@ jobs:
       - name: Install development-only Canvas renderer
         run: npm install --no-save --package-lock=false @napi-rs/canvas
       - name: Check JavaScript syntax
-        run: node --check classic-upgrade.js
+        run: node --check classic-upgrade.js && node --check crisp-differences.js
       - name: Verify original artwork and randomized gameplay
         run: node tests/original.test.cjs

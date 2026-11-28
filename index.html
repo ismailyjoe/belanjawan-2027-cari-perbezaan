@@ -4,11 +4,11 @@
 <script>
 (async()=>{
   try{
-    const response=await fetch('game-original.html?v=3',{cache:'no-cache'});
+    const response=await fetch('game-original.html?v=4',{cache:'no-cache'});
     if(!response.ok)throw Error('Gambar gagal dimuatkan.');
     const original=await response.text();
     if(!original.includes('function begin(){')||!original.includes("artwork.src='data:image/"))throw Error('Fail permainan tidak lengkap.');
-    const upgraded=original+'<scr'+'ipt src="classic-upgrade.js?v=3"></scr'+'ipt>';
+    const upgraded=original+'<scr'+'ipt src="crisp-differences.js?v=4"></scr'+'ipt><scr'+'ipt src="classic-upgrade.js?v=4"></scr'+'ipt>';
     document.open();document.write(upgraded);document.close();
   }catch(error){
     const notice=document.getElementById('loading');
